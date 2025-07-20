@@ -132,6 +132,9 @@ pub fn build(b: *std.Build) void {
     lib.addCSourceFiles(.{
         .root = upstream.path("."),
         .files = c_sources.items,
+        .flags = &.{
+            
+        },
     });
     lib.addIncludePath(upstream.path("."));
     lib.addIncludePath(wf.getDirectory());
