@@ -132,7 +132,10 @@ pub fn build(b: *std.Build) void {
     lib.addCSourceFiles(.{
         .root = upstream.path("."),
         .files = c_sources.items,
-        .flags = &.{},
+        .flags = &.{
+            "-std=c11",
+            "-O3",
+        },
     });
     lib.addIncludePath(upstream.path("."));
     lib.addIncludePath(wf.getDirectory());
