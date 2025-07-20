@@ -132,13 +132,12 @@ pub fn build(b: *std.Build) void {
     lib.addCSourceFiles(.{
         .root = upstream.path("."),
         .files = c_sources.items,
-        .flags = &.{
-            
-        },
+        .flags = &.{},
     });
     lib.addIncludePath(upstream.path("."));
     lib.addIncludePath(wf.getDirectory());
     lib.installHeadersDirectory(upstream.path("."), "", .{});
+    lib.installHeadersDirectory(wf.getDirectory(), "", .{});
 
     b.installArtifact(lib);
 }
