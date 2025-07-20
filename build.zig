@@ -12,6 +12,14 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // generate files from .in.h files
+    const wf = b.addWriteFiles();
+    _ = wf.addCopyFile(upstream.path("gzread.c.in"), "gzread.c");
+    _ = wf.addCopyFile(upstream.path("zlib-ng.h.in"), "zlib-ng.h");
+    _ = wf.addCopyFile(upstream.path("zlib_name_mangling.h.empty"), "zlib_name_mangling-ng.h");
+    _ = wf.addCopyFile(upstream.path("zconf-ng.h.in"), "zconf-ng.h");
+
+    // add C files & headers
     var c_sources = std.ArrayList([]const u8).init(b.allocator);
     defer c_sources.deinit();
 
@@ -121,7 +129,14 @@ pub fn build(b: *std.Build) void {
         .root = upstream.path("."),
         .files = c_sources.items,
     });
+    lib.addCSourceFiles(.{
+        .root = wf.getDirectory(),
+        .files = &.{
+            "gzread.c",
+        },
+    });
     lib.addIncludePath(upstream.path("."));
+    lib.addIncludePath(wf.getDirectory());
     lib.installHeadersDirectory(upstream.path("."), "", .{});
 
     b.installArtifact(lib);
