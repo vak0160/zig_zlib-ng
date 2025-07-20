@@ -13,9 +13,23 @@ pub fn build(b: *std.Build) void {
     });
 
     // generate files from .in.h files
+    const gzread_file = upstream.path(".").getPath3(b, null).openFile("gzread.c.in", .{}) catch @panic("Unable to open file");
+    defer gzread_file.close();
+    const gzread_content = gzread_file.readToEndAlloc(b.allocator, std.math.maxInt(usize)) catch @panic("Unable to read file");
+    defer b.allocator.free(gzread_content);
+    const gzread_replaced = std.mem.replaceOwned(u8, b.allocator, gzread_content, "@ZLIB_SYMBOL_PREFIX@", "") catch @panic("Unable to replace string");
+    defer b.allocator.free(gzread_replaced);
+
+    const zlibng_file = upstream.path(".").getPath3(b, null).openFile("zlib-ng.h.in", .{}) catch @panic("Unable to open file");
+    defer zlibng_file.close();
+    const zlibng_content = zlibng_file.readToEndAlloc(b.allocator, std.math.maxInt(usize)) catch @panic("Unable to read file");
+    defer b.allocator.free(zlibng_content);
+    const zlibng_replaced = std.mem.replaceOwned(u8, b.allocator, zlibng_content, "@ZLIB_SYMBOL_PREFIX@", "") catch @panic("Unable to replace string");
+    defer b.allocator.free(zlibng_replaced);
+
     const wf = b.addWriteFiles();
-    _ = wf.addCopyFile(upstream.path("gzread.c.in"), "gzread.c");
-    _ = wf.addCopyFile(upstream.path("zlib-ng.h.in"), "zlib-ng.h");
+    _ = wf.add("gzread.c", gzread_replaced);
+    _ = wf.add("zlib-ng.h", zlibng_replaced);
     _ = wf.addCopyFile(upstream.path("zlib_name_mangling.h.empty"), "zlib_name_mangling-ng.h");
     _ = wf.addCopyFile(upstream.path("zconf-ng.h.in"), "zconf-ng.h");
 
