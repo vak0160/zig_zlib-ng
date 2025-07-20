@@ -97,23 +97,57 @@ pub fn build(b: *std.Build) void {
         },
         .x86, .x86_64 => {
             c_sources.appendSlice(&.{
-                "arch/x86/adler32_avx2.c",
-                "arch/x86/adler32_avx512.c",
-                "arch/x86/adler32_avx512_vnni.c",
-                "arch/x86/adler32_sse42.c",
-                "arch/x86/adler32_ssse3.c",
-                "arch/x86/chunkset_avx2.c",
-                "arch/x86/chunkset_avx512.c",
-                "arch/x86/chunkset_sse2.c",
-                "arch/x86/chunkset_ssse3.c",
-                "arch/x86/compare256_avx2.c",
-                "arch/x86/compare256_sse2.c",
-                "arch/x86/crc32_pclmulqdq.c",
-                "arch/x86/crc32_vpclmulqdq.c",
-                "arch/x86/slide_hash_avx2.c",
-                "arch/x86/slide_hash_sse2.c",
                 "arch/x86/x86_features.c",
             }) catch @panic("Failed to add C sources");
+
+            if (std.Target.x86.featureSetHas(target.result.cpu.features, .sse2)) {
+                c_sources.appendSlice(&.{
+                    "arch/x86/chunkset_sse2.c",
+                    "arch/x86/compare256_sse2.c",
+                    "arch/x86/slide_hash_sse2.c",
+                }) catch @panic("Failed to add C sources");
+            }
+            if (std.Target.x86.featureSetHas(target.result.cpu.features, .sse3)) {
+                c_sources.appendSlice(&.{
+                    "arch/x86/adler32_ssse3.c",
+                    "arch/x86/chunkset_ssse3.c",
+                }) catch @panic("Failed to add C sources");
+            }
+            if (std.Target.x86.featureSetHas(target.result.cpu.features, .sse4_2)) {
+                c_sources.appendSlice(&.{
+                    "arch/x86/adler32_sse42.c",
+                }) catch @panic("Failed to add C sources");
+            }
+            if (std.Target.x86.featureSetHas(target.result.cpu.features, .pclmul)) {
+                c_sources.appendSlice(&.{
+                    "arch/x86/crc32_pclmulqdq.c",
+                }) catch @panic("Failed to add C sources");
+            }
+            if (std.Target.x86.featureSetHas(target.result.cpu.features, .avx2)) {
+                c_sources.appendSlice(&.{
+                    "arch/x86/slide_hash_avx2.c",
+                    "arch/x86/chunkset_avx2.c",
+                    "arch/x86/compare256_avx2.c",
+                    "arch/x86/adler32_avx2.c",
+                }) catch @panic("Failed to add C sources");
+            }
+            if (std.Target.x86.featureSetHas(target.result.cpu.features, .avx512f)) {
+                c_sources.appendSlice(&.{
+                    "arch/x86/adler32_avx512.c",
+                    "arch/x86/chunkset_avx512.c",
+                }) catch @panic("Failed to add C sources");
+
+                if (std.Target.x86.featureSetHas(target.result.cpu.features, .pclmul)) {
+                    c_sources.appendSlice(&.{
+                        "arch/x86/crc32_pclmulqdq.c",
+                    }) catch @panic("Failed to add C sources");
+                }
+            }
+            if (std.Target.x86.featureSetHas(target.result.cpu.features, .avx512vnni)) {
+                c_sources.appendSlice(&.{
+                    "arch/x86/adler32_avx512_vnni.c",
+                }) catch @panic("Failed to add C sources");
+            }
         },
         else => {
             c_sources.appendSlice(&.{
